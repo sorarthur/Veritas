@@ -19,11 +19,12 @@ def run_scan():
         messagebox.showwarning("No file selected", "Please select a file to scan.")
         return
     try:
-        malicious_hashes = malware_scanner.load_malicious_hashes("malicious_hashes.txt")
+        malicious_hashes = malware_scanner.load_malicious_hashes('malicious_hashes.txt')
         result, file_hash = malware_scanner.scan_file(file_path, malicious_hashes)
-        messagebox.showinfo("Scan Result", result.format(file_path=file_path, file_hash=file_hash))
+        results_text.delete(1.0, tkinter.END)
+        results_text.insert(tkinter.END, f"{result}\nFile Hash: {file_hash}")
     except Exception as e:
-        messagebox.showerror("Error", f"An error occurred during the scan: {str(e)}")
+        messagebox.showerror("Error", f"An error occurred during scanning: {str(e)}")
     
 def run_extraction():
     file_path = filedialog.askopenfilename(
@@ -56,6 +57,14 @@ top_frame.pack(pady=10)
 # File Selection Button
 select_button = tkinter.Button(top_frame, text="Select File", command=select_file)
 select_button.pack(side=tkinter.LEFT, padx=5)
+
+# Scan Button
+scan_button = tkinter.Button(top_frame, text="Scan File", command=run_scan)
+scan_button.pack(side=tkinter.LEFT, padx=5)
+
+# Extract Metadata Button
+extract_button = tkinter.Button(top_frame, text="Extract Metadata", command=run_extraction)
+extract_button.pack(side=tkinter.LEFT, padx=5)
 
 # Results
 results_text = scrolledtext.ScrolledText(root, wrap=tkinter.WORD, width=80, height=20)

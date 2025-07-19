@@ -39,7 +39,6 @@ def extract_metadata(image_path):
                 metadata['title'] = info.title if info.title else 'Unknown'
                 metadata['subject'] = info.subject if info.subject else 'Unknown'
                 metadata['producer'] = info.producer if info.producer else 'Unknown'
-                metadata['created'] = info.created if info.created else 'Unknown'
         else:
             raise ValueError("Unsupported file format. Only images and PDFs are supported.")
         
