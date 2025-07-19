@@ -1,0 +1,60 @@
+# Arquivos de Bytecode e Cache do Python
+# Gerados automaticamente pelo interpretador Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Diretórios de Ambiente Virtual
+# Nunca envie seu ambiente virtual para o repositório!
+# Ele contém pacotes que podem ser reinstalados a partir de um arquivo requirements.txt
+venv/
+.venv/
+env/
+ENV/
+*.env
+
+# Arquivos e pastas de distribuição/build
+# Gerados ao empacotar sua aplicação com ferramentas como PyInstaller ou setuptools
+build/
+dist/
+*.egg-info/
+*.spec
+
+# Diretórios de configuração de IDEs e Editores
+# Evita que as configurações pessoais do seu editor sejam enviadas
+.vscode/
+.idea/
+.project
+.pydevproject
+.settings/
+
+# Arquivos gerados pelo sistema operacional
+# Arquivos inúteis criados pelo Windows, macOS e Linux
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Arquivos de log e bancos de dados temporários
+# Logs de execução e bancos de dados SQLite locais
+*.log
+*.db
+*.sqlite3
+
+# Arquivos sensíveis e de configuração local
+# IMPORTANTE: Nunca envie chaves de API, senhas ou outras credenciais!
+config.ini
+secrets.json
+api_keys.txt
+.env
+
+# Relatórios e arquivos de saída
+# Se sua ferramenta gera relatórios, você pode querer ignorá-los
+reports/
+output/
+*.json
+*.txt
+
+# Exceção para arquivos de texto que DEVEM estar no repositório
+# Descomente e ajuste se precisar incluir um arquivo específico que foi ignorado acima
+# !requirements.txt
+# !malicious_hashes.txt
