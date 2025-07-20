@@ -1,5 +1,7 @@
 rule EncontrarAbracadabra
 {
+    meta:
+        author: Arthur
     strings:
         $palavra_magica = "abracadabra"
 
