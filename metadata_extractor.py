@@ -2,6 +2,43 @@ from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 import PyPDF2
 import geopy
+import re
+import os
+
+def extract_meaningful_strings(file_path):
+    """
+    Scans a file's binary content to find and extract significant strings
+    like IPs, URLs, emails, and file paths using regular expressions.
+    """
+    results = {
+        "ip_adresses": set(),
+        "urls": set(),
+        "emails": set(),
+        "file_paths": set()
+    }
+    
+    try:
+        with open(file_path, 'rb') as file:
+            content = file.read()
+            
+            # Regex patterns definitions
+            ip_pattern = rb'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b'
+            url_pattern = rb'https?://[^\s"\'<>]+'
+            email_pattern = rb'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+            path_pattern = rb'(?:[a-zA-Z]:\\|\/)[^\s"\'<>]*'
+            
+            results['ip_adresses'] = {match.decode('ascii', 'ignore') for match in re.findall(ip_pattern, content)}
+            results['urls'] = {match.decode('ascii', 'ignore') for match in re.findall(url_pattern, content)}
+            results['emails'] = {match.decode('ascii', 'ignore') for match in re.findall(email_pattern, content)}
+            results['file_paths'] = {match.decode('ascii', 'ignore') for match in re.findall(path_pattern, content)}
+
+            final_results = {key: list(value) for key, value in results.items() if value}
+            
+            return final_results
+    except Exception as e:
+        print(f"[ERROR] Failed to extract meaningful strings: {e}")
+        return {"error": str(e)}
+    return results
 
 def get_geotagging_info(exif_data):
     """
@@ -38,6 +75,46 @@ def get_decimal_coordinates(dms, ref):
     
     return decimal
 
+def get_image_metadata(file_path):
+    metadata = {}
+    try:
+        image = Image.open(file_path)
+        metadata['format'] = image.format
+        metadata['mode'] = image.mode
+        metadata['size'] = f"{image.width}x{image.height}"
+        exif_data = image._getexif()
+        if exif_data:
+            metadata['exif_data'] = {}
+            for tag, value in exif_data.items():
+                tag_name = TAGS.get(tag, tag)
+                metadata['exif_data'][tag_name] = repr(value)
+            geotags = get_geotagging_info(exif_data)
+            if geotags:
+                lat_dms, lon_dms = geotags.get('GPSLatitude'), geotags.get('GPSLongitude')
+                lat_ref, lon_ref = geotags.get('GPSLatitudeRef'), geotags.get('GPSLongitudeRef')
+                if lat_dms and lon_dms and lat_ref and lon_ref:
+                    latitude = get_decimal_coordinates(lat_dms, lat_ref)
+                    longitude = get_decimal_coordinates(lon_dms, lon_ref)
+                    metadata['geolocation'] = {'latitude': latitude, 'longitude': longitude, 'address': get_address_from_coords(latitude, longitude)}
+    except Exception as e:
+        metadata['error'] = f"Could not process image file: {e}"
+    return metadata
+
+def get_pdf_metadata(file_path):
+    metadata = {}
+    try:
+        with open(file_path, 'rb') as f:
+            pdf = PyPDF2.PdfReader(f)
+            info = pdf.metadata
+            metadata['num_pages'] = len(pdf.pages)
+            metadata['author'] = info.author if info.author else 'Unknown'
+            metadata['title'] = info.title if info.title else 'Unknown'
+            metadata['subject'] = info.subject if info.subject else 'Unknown'
+            metadata['producer'] = info.producer if info.producer else 'Unknown'
+    except Exception as e:
+        metadata['error'] = f"Could not process PDF file: {e}"
+    return metadata
+
 def get_adress_from_coordinates(lat, lon):
     """
     Performs reverse geocoding to get a human-readable address from coordinates.
@@ -53,57 +130,25 @@ def get_adress_from_coordinates(lat, lon):
         return "Address not found"
     
     
-def extract_metadata(image_path):
-    metadata = {}
+def extract_metadata(file_path):
+    """
+    Main function that orchestrates metadata extraction.
+    It now also calls the string extraction for every file.
+    """
+    file_extension = os.path.splitext(file_path)[1].lower()
+    metadata = {'file_name': os.path.basename(file_path)}
     try:
-        # image logic
-        if image_path.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
-            with Image.open(image_path) as img:
-                metadata['format'] = img.format
-                metadata['mode'] = img.mode
-                metadata['info'] = img.info
-                metadata['dimensions'] = f"{img.width}x{img.height}"
-                
-                # extract EXIF data if available
-                exif_data = img._getexif()
-                if exif_data:
-                    # metadata['exif'] = {}
-                    # for tag_id, value in exif_data.items():
-                    #     tag = TAGS.get(tag_id, tag_id)
-                    #     metadata['exif'][tag] = repr(value)
-                    
-                    # handle GPS data if available
-                    geo_tags = get_geotagging_info(exif_data)
-                    if geo_tags:
-                        lat_dms = geo_tags.get('GPSLatitude')
-                        lon_dms = geo_tags.get('GPSLongitude')
-                        lat_dms_ref = geo_tags.get('GPSLatitudeRef')
-                        lon_dms_ref = geo_tags.get('GPSLongitudeRef')
-                        
-                        if lat_dms and lon_dms and lat_dms_ref and lon_dms_ref:
-                            latitude = get_decimal_coordinates(lat_dms, lat_dms_ref)
-                            longitude = get_decimal_coordinates(lon_dms, lon_dms_ref)
-                            
-                            metadata['geolocation'] = {
-                                'latitude': latitude,
-                                'longitude': longitude,
-                                'address': get_adress_from_coordinates(latitude, longitude)
-                            }
-                        
-        # pdf logic
-        elif image_path.lower().endswith('.pdf'):
-            with open(image_path, 'rb') as f:
-                pdf = PyPDF2.PdfReader(f)
-                info = pdf.metadata
-                metadata['format'] = 'PDF'
-                metadata['num_pages'] = len(pdf.pages)
-                metadata['author'] = info.author if info.author else 'Unknown'
-                metadata['title'] = info.title if info.title else 'Unknown'
-                metadata['subject'] = info.subject if info.subject else 'Unknown'
-                metadata['producer'] = info.producer if info.producer else 'Unknown'
+        if file_extension in ['.jpg', '.jpeg', '.png', '.tiff']:
+            metadata.update(get_image_metadata(file_path))
+        elif file_extension == '.pdf':
+            metadata.update(get_pdf_metadata(file_path))
         else:
-            raise ValueError("Unsupported file format. Only images and PDFs are supported.")
+            metadata['status'] = 'Unsupported file type for metadata extraction'
         
+        # Extract meaningful strings from the file
+        strings = extract_meaningful_strings(file_path)
+        if strings:
+            metadata['meaningful_strings'] = strings 
     except Exception as e:
         return {"error": str(e)}
 
