@@ -67,123 +67,93 @@ class RoundedButton(tkinter.Canvas):
 # --- APPLICATION LOGIC ---
 class ForensicToolApp:
     def __init__(self, root):
-        self.root = root
-        self.root.title("Digital Forensics Tool")
-        self.root.geometry("800x600")
-        self.root.configure(bg=THEME["root_bg"])
-        try:
-            self.root.eval('tk::PlaceWindow . center')
-        except tkinter.TclError:
-            print("Could not center window.")
-        icon_path = os.path.join('assets', 'logo.ico')
-        try:
-            self.root.iconbitmap(icon_path)
-        except tkinter.TclError:
-            print(f"Warning: Could not find icon file at '{icon_path}'.")
-        self.malicious_hashes = malware_scanner.load_malicious_hashes("malicious_hashes.txt")
-        self.compiled_rules = malware_scanner.compile_rules(malware_scanner.YARA_RULES_PATH)
-        if not self.compiled_rules:
-            messagebox.showerror("YARA Rules Error", "Could not load or compile YARA rules.")
+        self.root = root; self.root.title("Digital Forensics Tool"); self.root.geometry("800x600"); self.root.configure(bg=THEME["root_bg"]);
+        try: self.root.eval('tk::PlaceWindow . center')
+        except tkinter.TclError: print("Could not center window.")
+        icon_path = os.path.join('assets', 'logo.ico');
+        try: self.root.iconbitmap(icon_path)
+        except tkinter.TclError: print(f"Warning: Could not find icon file at '{icon_path}'.")
+        self.malicious_hashes = malware_scanner.load_malicious_hashes("malicious_hashes.txt"); self.compiled_rules = malware_scanner.compile_rules(malware_scanner.YARA_RULES_PATH)
+        if not self.compiled_rules: messagebox.showerror("YARA Rules Error", "Could not load or compile YARA rules.")
         self.setup_ui()
 
     def setup_ui(self):
-        """Creates and positions all widgets, now using a Treeview for results."""
-        main_frame = tkinter.Frame(self.root, bg=THEME["root_bg"], padx=20, pady=20)
-        main_frame.pack(fill='both', expand=True)
+        main_frame = tkinter.Frame(self.root, bg=THEME["root_bg"], padx=20, pady=20); main_frame.pack(fill='both', expand=True)
+        button_frame = tkinter.Frame(main_frame, bg=THEME["root_bg"]); button_frame.pack(fill='x', pady=(0, 20))
+        # Now 3 columns, each with equal weight
+        button_frame.grid_columnconfigure((0, 1, 2), weight=1)
 
-        button_frame = tkinter.Frame(main_frame, bg=THEME["root_bg"])
-        button_frame.pack(fill='x', pady=(0, 20))
-        button_frame.grid_columnconfigure((0, 1), weight=1)
+        scan_file_button = RoundedButton(button_frame, text="Scan File", command=self.run_file_scan, height=40)
+        scan_file_button.grid(row=0, column=0, sticky="ew", padx=(0, 5))
 
-        scan_button = RoundedButton(button_frame, text="Scan File", command=self.run_scan, height=40)
-        scan_button.grid(row=0, column=0, sticky="ew", padx=(0, 10))
+        # --- NEW: Scan Directory Button ---
+        scan_dir_button = RoundedButton(button_frame, text="Scan Directory", command=self.run_directory_scan, height=40)
+        scan_dir_button.grid(row=0, column=1, sticky="ew", padx=5)
+
         extract_button = RoundedButton(button_frame, text="Extract Metadata", command=self.run_extraction, height=40)
-        extract_button.grid(row=0, column=1, sticky="ew", padx=(10, 0))
-
-        # --- Treeview Table Setup ---
-        # Create a style object to theme the treeview
-        style = ttk.Style()
-        style.theme_use("default") # Start from a basic theme
+        extract_button.grid(row=0, column=2, sticky="ew", padx=(5, 0))
         
-        # Configure the Treeview style
-        style.configure("Treeview",
-                        background=THEME["widget_bg"],
-                        foreground=THEME["text_fg"],
-                        fieldbackground=THEME["widget_bg"],
-                        rowheight=25,
-                        font=(THEME["font_family"], THEME["font_size"]))
-        # Remove borders
-        style.layout("Treeview", [('Treeview.treearea', {'sticky': 'nswe'})])
+        # Treeview setup remains the same
+        style = ttk.Style(); style.theme_use("default"); style.configure("Treeview", background=THEME["widget_bg"], foreground=THEME["text_fg"], fieldbackground=THEME["widget_bg"], rowheight=25, font=(THEME["font_family"], THEME["font_size"])); style.layout("Treeview", [('Treeview.treearea', {'sticky': 'nswe'})]); style.configure("Treeview.Heading", background=THEME["tree_heading_bg"], foreground=THEME["tree_heading_fg"], font=(THEME["font_family"], THEME["font_size"], "bold"), relief="flat"); style.map("Treeview.Heading", background=[('active', THEME["button_hover_bg"])]); tree_frame = tkinter.Frame(main_frame); tree_frame.pack(fill='both', expand=True); self.results_tree = ttk.Treeview(tree_frame, columns=("Property", "Value"), show="headings"); self.results_tree.heading("Property", text="Property"); self.results_tree.heading("Value", text="Value"); self.results_tree.column("Property", width=250, anchor="w"); self.results_tree.column("Value", anchor="w"); scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=self.results_tree.yview); self.results_tree.configure(yscrollcommand=scrollbar.set); scrollbar.pack(side="right", fill="y"); self.results_tree.pack(side="left", fill="both", expand=True)
 
-        # Configure the Heading style
-        style.configure("Treeview.Heading",
-                        background=THEME["tree_heading_bg"],
-                        foreground=THEME["tree_heading_fg"],
-                        font=(THEME["font_family"], THEME["font_size"], "bold"),
-                        relief="flat")
-        
-        # Change heading style on mouse hover
-        style.map("Treeview.Heading", background=[('active', THEME["button_hover_bg"])])
-
-        # Create a frame for the treeview and its scrollbar
-        tree_frame = tkinter.Frame(main_frame)
-        tree_frame.pack(fill='both', expand=True)
-
-        # Create the Treeview widget
-        self.results_tree = ttk.Treeview(tree_frame, columns=("Property", "Value"), show="headings")
-        self.results_tree.heading("Property", text="Property")
-        self.results_tree.heading("Value", text="Value")
-        self.results_tree.column("Property", width=200, anchor="w")
-        self.results_tree.column("Value", anchor="w")
-        
-        # Create a scrollbar
-        scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=self.results_tree.yview)
-        self.results_tree.configure(yscrollcommand=scrollbar.set)
-        
-        # Pack the widgets
-        scrollbar.pack(side="right", fill="y")
-        self.results_tree.pack(side="left", fill="both", expand=True)
-
-    def update_results_table(self, metadata):
-        """Clears and populates the results table with new data."""
-        # Clear previous results
-        for item in self.results_tree.get_children():
-            self.results_tree.delete(item)
-
-        # Populate with new data
-        if 'error' in metadata:
-            self.results_tree.insert("", "end", values=("Error", metadata['error']))
-        else:
-            self._populate_tree(metadata)
+    def update_results_table(self, data):
+        for item in self.results_tree.get_children(): self.results_tree.delete(item)
+        if 'error' in data: self.results_tree.insert("", "end", values=("Error", data['error']))
+        else: self._populate_tree(data)
 
     def _populate_tree(self, data, parent=""):
-        """Recursively populates the tree, handling nested dictionaries."""
         for key, value in data.items():
             key_name = key.replace("_", " ").title()
-            
-            if isinstance(value, dict):
-                # Insert the parent key (e.g., "Geolocation") and get its ID
+            if key_name == "Malicious Files" and isinstance(value, list):
+                # Special handling for the list of malicious files
+                parent_id = self.results_tree.insert(parent, "end", values=(f"▼ {key_name}", f"({len(value)} found)"))
+                for file_result in value:
+                    # Show the file path as a sub-item
+                    file_node = self.results_tree.insert(parent_id, "end", values=(f"  - {os.path.basename(file_result['file_path'])}", file_result['status_message']))
+                    # Add detailed findings as children of the file path
+                    self._populate_tree({k: v for k, v in file_result.items() if k != 'file_path' and v}, parent=file_node)
+            elif isinstance(value, dict):
                 item_id = self.results_tree.insert(parent, "end", values=(f"▼ {key_name}", ""))
-                # Recursively call this function for the nested dictionary
                 self._populate_tree(value, parent=item_id)
             elif isinstance(value, list):
                 item_id = self.results_tree.insert(parent, "end", values=(f"▼ {key_name}", f"({len(value)} items)"))
-                for i, item in enumerate(value):
-                    self.results_tree.insert(item_id, "end", values=(f"  [{i}]", item))
+                for i, item in enumerate(value): self.results_tree.insert(item_id, "end", values=(f"  [{i}]", item))
             else:
                 self.results_tree.insert(parent, "end", values=(key_name, value))
 
-    def run_scan(self):
-        # A simple scan result is still needed for the table
+    def run_file_scan(self):
         file_path = filedialog.askopenfilename(title="Select a file to scan")
         if not file_path: return
         try:
             results = malware_scanner.scan_file(file_path, self.compiled_rules, self.malicious_hashes)
-            self.update_results_table(results) # Display results in the table
-            if results.get('is_malicious'):
-                 messagebox.showwarning("Threat Detected", f"A potential threat was found in:\n{file_path}")
+            self.update_results_table(results)
+            if results.get('is_malicious'): messagebox.showwarning("Threat Detected", f"A potential threat was found in:\n{file_path}")
+            else: messagebox.showinfo("Scan Complete", f"No threats were detected in:\n{file_path}")
+        except Exception as e: self.update_results_table({"Error": str(e)})
+
+    # --- Directory Scan Function ---
+    def run_directory_scan(self):
+        directory_path = filedialog.askdirectory(title="Select a directory to scan")
+        if not directory_path: return
+        
+        # Show a "please wait" message
+        messagebox.showinfo("Scan in Progress", f"Scanning directory:\n{directory_path}\n\nThis may take some time. Please wait for the completion message.")
+        self.root.update_idletasks() # Update UI to show the messagebox
+        
+        try:
+            # Call the new scanner function
+            scan_report = malware_scanner.scan_directory(directory_path, self.compiled_rules, self.malicious_hashes)
+            
+            # Update the table with the full report
+            self.update_results_table(scan_report)
+            
+            # Final message
+            threats_found = scan_report["scan_summary"]["malicious_files_found"]
+            if threats_found > 0:
+                messagebox.showwarning("Scan Complete", f"Scan finished. Found {threats_found} potential threat(s). See table for details.")
             else:
-                 messagebox.showinfo("Scan Complete", f"No threats were detected in:\n{file_path}")
+                messagebox.showinfo("Scan Complete", "Scan finished. No threats were detected.")
+
         except Exception as e:
             self.update_results_table({"Error": str(e)})
 
@@ -192,11 +162,9 @@ class ForensicToolApp:
         if not file_path: return
         try:
             metadata = metadata_extractor.extract_metadata(file_path)
-            self.update_results_table(metadata) # Populate the table
-        except Exception as e:
-            self.update_results_table({"Error": str(e)})
+            self.update_results_table(metadata)
+        except Exception as e: self.update_results_table({"Error": str(e)})
 
-# --- Main Execution ---
 if __name__ == "__main__":
     root = tkinter.Tk()
     app = ForensicToolApp(root)
