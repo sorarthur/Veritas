@@ -95,7 +95,7 @@ def get_image_metadata(file_path):
                 if lat_dms and lon_dms and lat_ref and lon_ref:
                     latitude = get_decimal_coordinates(lat_dms, lat_ref)
                     longitude = get_decimal_coordinates(lon_dms, lon_ref)
-                    metadata['geolocation'] = {'latitude': latitude, 'longitude': longitude, 'address': get_address_from_coords(latitude, longitude)}
+                    metadata['geolocation'] = {'latitude': latitude, 'longitude': longitude, 'address': get_adress_from_coordinates(latitude, longitude)}
     except Exception as e:
         metadata['error'] = f"Could not process image file: {e}"
     return metadata
