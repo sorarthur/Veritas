@@ -1,0 +1,8 @@
+yara-python
+geopy
+Pillow
+python-docx
+openpyxl
+python-pptx
+pefile
+PyPDF2

@@ -41,20 +41,17 @@ desktop.ini
 *.sqlite3
 
 # Arquivos sensíveis e de configuração local
-# IMPORTANTE: Nunca envie chaves de API, senhas ou outras credenciais!
 config.ini
 secrets.json
 api_keys.txt
 .env
 
 # Relatórios e arquivos de saída
-# Se sua ferramenta gera relatórios, você pode querer ignorá-los
 reports/
 output/
 *.json
 *.txt
 
 # Exceção para arquivos de texto que DEVEM estar no repositório
-# Descomente e ajuste se precisar incluir um arquivo específico que foi ignorado acima
-# !requirements.txt
-# !malicious_hashes.txt
+!requirements.txt
+!malicious_hashes.txt
