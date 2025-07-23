@@ -90,13 +90,21 @@ Once the setup is complete, run the main application file from your terminal:
 python3 main_ui.py
 ```
 
-Scan File: Prompts you to select a single file to scan against the hash list and YARA rules.
+### Usage
 
-Scan Directory: Prompts you to select a directory. The tool will recursively scan every file within it.
+The application provides three main functions through its user interface:
 
-Extract Metadata: Prompts you to select a single file to perform a deep analysis, extracting all available metadata and meaningful strings.
+-   **`Scan File`**: Prompts you to select a single file. It then performs a security scan against the provided `malicious_hashes.txt` and all `.yar` rules located in the `yara_rules` directory.
 
-📁 Project Structure
+-   **`Scan Directory`**: Prompts you to select a directory. The tool will recursively scan every file within that directory and its subdirectories, reporting any findings in a summary table.
+
+-   **`Extract Metadata`**: Prompts you to select a single file to perform a deep analysis. It extracts all available metadata (like EXIF/GPS for images) and any meaningful strings (IPs, URLs, emails, etc.) found in the file's binary content.
+
+---
+### 📁 Project Structure
+
+The project is organized into the following directory structure:
+
 /
 |-- main_ui.py            # Main application file, handles the GUI and user interaction
 |-- malware_scanner.py    # Core logic for hash and YARA scanning (files and directories)
