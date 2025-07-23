@@ -9,10 +9,10 @@ A Python-based desktop application designed for basic digital forensics and stat
 *(Here you should add screenshots of your application in action. A great README always has visuals!)*
 
 *Screenshot of the main interface:*
-![Main UI](placeholder_for_main_ui_screenshot.png)
+![Main UI](assets/placeholder_for_main_ui_screenshot.png)
 
 *Example of metadata extraction results:*
-![Metadata Results](placeholder_for_metadata_screenshot.png)
+![Metadata Results](assets/placeholder_for_metadata_screenshot.png)
 
 ## ✨ Key Features
 
