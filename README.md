@@ -105,7 +105,7 @@ The application provides three main functions through its user interface:
 
 The project is organized into the following directory structure:
 
-/
+```/
 |-- main_ui.py            # Main application file, handles the GUI and user interaction
 |-- malware_scanner.py    # Core logic for hash and YARA scanning (files and directories)
 |-- metadata_extractor.py # Logic for metadata and meaningful string extraction
@@ -119,3 +119,4 @@ The project is organized into the following directory structure:
 |   |-- logo.ico          # Application icon
 |
 |-- README.md             # This file
+```
