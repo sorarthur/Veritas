@@ -6,8 +6,6 @@ A Python-based desktop application designed for basic digital forensics and stat
 
 ## 📸 Screenshots
 
-*(Here you should add screenshots of your application in action. A great README always has visuals!)*
-
 *Screenshot of the main interface:*
 ![Main UI](assets/placeholder_for_main_ui_screenshot.png)
 
