@@ -48,7 +48,7 @@ class RoundedButton(tkinter.Canvas):
         if width <= 1 or height <= 1: return
         radius = min(self.radius, width/2, height/2)
         bg = color
-        self.create_polygon( (radius, 0, width-radius, 0, width, radius, width, height-radius, width-radius, height, radius, height, 0, height-radius, 0, radius), fill=bg, smooth=True )
+        self.create_polygon( (radius, 0, width-radius, 0, width, radius, width, height-radius, width-radius, height, radius, height, 0, height-radius, 0, radius), fill=bg, smooth=False )
         self.create_text(width/2, height/2, text=self.text, font=self.font, fill=self.fg_color)
     def _on_resize(self, event):
         if self._state == "hover": self.draw(color=self.hover_color)
@@ -67,7 +67,7 @@ class RoundedButton(tkinter.Canvas):
 # --- APPLICATION LOGIC ---
 class ForensicToolApp:
     def __init__(self, root):
-        self.root = root; self.root.title("Digital Forensics Tool"); self.root.geometry("800x600"); self.root.configure(bg=THEME["root_bg"]);
+        self.root = root; self.root.title("Veritas"); self.root.geometry("800x600"); self.root.configure(bg=THEME["root_bg"]);
         try: self.root.eval('tk::PlaceWindow . center')
         except tkinter.TclError: print("Could not center window.")
         icon_path = os.path.join('assets', 'logo.ico');
