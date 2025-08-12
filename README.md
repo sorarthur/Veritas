@@ -55,8 +55,8 @@ Follow these steps to get the project running on your local machine. It's highly
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/YourUsername/Digital-Forensics-Tool.git](https://github.com/YourUsername/Digital-Forensics-Tool.git)
-    cd Digital-Forensics-Tool
+    git clone [https://github.com/YourUsername/Digital-Forensics-Tool.git](https://github.com/sorarthur/Veritas.git)
+    cd Veritas
     ```
 
 2.  **Create and activate a Python virtual environment (Recommended):**
